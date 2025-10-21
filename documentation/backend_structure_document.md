@@ -1,179 +1,206 @@
-# Backend Structure Document
+# Backend Structure Document for evoting-sman1-bantarujeg
 
-This document outlines the backend architecture, hosting, and infrastructure for the **codeguide-starter** project. It uses plain language so anyone can understand how the backend is set up and how it supports the application.
+This document outlines the backend architecture, database setup, APIs, hosting environment, infrastructure components, security measures, and maintenance plan for the SMAN 1 Bantarujeg e-voting application. It’s written in clear, everyday language so that anyone can understand how the backend is organized and maintained.
 
 ## 1. Backend Architecture
 
-- **Framework and Design Pattern**
-  - We use **Next.js API Routes** to handle all server-side logic. These routes live alongside the frontend code in the same repository, making development and deployment simpler.
-  - The backend follows a **layered pattern**:
-    1. **API Layer**: Receives requests (login, registration, data fetch).  
-    2. **Service Layer**: Contains the core business logic (user validation, password hashing).  
-    3. **Data Access Layer**: Talks to the database via a simple ORM (e.g., Prisma or TypeORM).
+### Overall Architecture
+- We use a **modular, server-centric** design powered by Next.js (App Router). Pages and API routes live side by side under the `/app` directory, making it easy to group related code.
+- Business logic—like authentication checks and vote recording—runs on the server side. React Server Components fetch data directly from the database, while Client Components handle interactive features (forms, dialogs).
+- We follow simple, well-known patterns:
+  - **MVC-ish separation**: API routes act as controllers, Drizzle ORM models represent data, and Next.js pages/views render the UI.
+  - **Dependency injection** for database connections: We initialize one Drizzle client instance in `/db/index.ts` and share it across all API handlers.
 
-- **Scalability**
-  - Stateless API routes can scale horizontally—new instances can spin up on demand.  
-  - We can add caching or a message queue (e.g., Redis or RabbitMQ) without changing the core code.
-
-- **Maintainability**
-  - Code for each feature is grouped by route (authentication, dashboard).  
-  - A service layer separates complex logic from request handling.
-
-- **Performance**
-  - Lightweight Node.js handlers keep response times low.  
-  - Future use of database connection pooling and Redis for caching repeated queries.
+### Scalability, Maintainability & Performance
+- **Scalability**: Next.js apps on Vercel (or Docker with container orchestration) scale automatically—more instances spin up as traffic grows.
+- **Maintainability**:
+  - Code is organized into clear folders: `/app` (pages and API), `/components` (UI), `/db` (schema + connection), `/lib` (utilities/auth).
+  - TypeScript enforces types end-to-end (from ORM to API inputs), reducing bugs.
+- **Performance**:
+  - Server Components fetch data without extra client-side bundles.
+  - Built-in data caching (ISR or edge caching on Vercel) speeds up repeat requests.
+  - Light, utility-first CSS (Tailwind) keeps bundle sizes small.
 
 ## 2. Database Management
 
-- **Database Choice**
-  - We recommend **PostgreSQL** for structured data and reliable transactions.  
-  - In-memory caching can be added later with **Redis** for session tokens or frequently read data.
+### Technology Stack
+- Database type: **Relational (SQL)**
+- System: **PostgreSQL**
+- ORM/Query Builder: **Drizzle ORM** (type-safe, migrations-supported)
 
-- **Data Storage and Access**
-  - Use an ORM like **Prisma** or **TypeORM** to map JavaScript/TypeScript objects to database tables.
-  - Connection pooling ensures efficient use of database connections under load.
-  - Migrations track schema changes over time, keeping development, staging, and production in sync.
-
-- **Data Practices**
-  - Passwords are never stored in plain text—they are salted and hashed with **bcrypt** before saving.
-  - All outgoing data is typed and validated to prevent malformed records.
+### Data Structure & Access
+- Data is organized into tables (admins, students, tokens, candidates, votes).
+- Drizzle’s schema definitions in `/db/schema/*.ts` serve as the single source of truth—migrations generated from these files keep the database in sync.
+- We use parameterized queries under the hood, guarding against SQL injection.
+- Common practices:
+  - **Migrations**: Every schema change is versioned and applied in a controlled way.
+  - **Connection pooling**: The Drizzle client reuses connections.
+  - **Transactions**: Critical operations (e.g., voting) run inside a transaction to maintain data integrity.
 
 ## 3. Database Schema
 
-### Human-Readable Format
+Below is the schema defined for PostgreSQL using SQL (human-readable). It matches our Drizzle definitions.
 
-- **Users**
-  - **id**: Unique identifier  
-  - **email**: User’s email address (unique)  
-  - **password_hash**: Securely hashed password  
-  - **created_at**: Account creation timestamp
+---
 
-- **Sessions**
-  - **id**: Unique session record  
-  - **user_id**: Links to a user  
-  - **token**: Random string for authentication  
-  - **expires_at**: When the token stops working  
-  - **created_at**: When the session was created
+Table: **admins**  
+  • id: serial primary key  
+  • email: text unique not null  
+  • password_hash: text not null  
+  • created_at: timestamp default now()
 
-- **DashboardItems** *(optional for dynamic data)*
-  - **id**: Unique record  
-  - **title**: Item title  
-  - **content**: Item details  
-  - **created_at**: When the item was added
+Table: **students**  
+  • id: serial primary key  
+  • nis: varchar(20) unique not null  
+  • name: text not null  
+  • class: text not null  
+  • has_voted: boolean default false  
+  • created_at: timestamp default now()
 
-### SQL Schema (PostgreSQL)
-```sql
--- Users table
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password_hash VARCHAR(255) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+Table: **tokens**  
+  • token_value: varchar(64) primary key  
+  • student_id: integer references students(id) on delete cascade  
+  • expires_at: timestamp not null  
+  • is_used: boolean default false
 
--- Sessions table
-CREATE TABLE sessions (
-  id SERIAL PRIMARY KEY,
-  user_id INT REFERENCES users(id) ON DELETE CASCADE,
-  token VARCHAR(255) UNIQUE NOT NULL,
-  expires_at TIMESTAMPTZ NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+Table: **candidates**  
+  • id: serial primary key  
+  • name: text not null  
+  • photo_url: text  
+  • mission_statement: text
 
--- Dashboard items table
-CREATE TABLE dashboard_items (
-  id SERIAL PRIMARY KEY,
-  title TEXT NOT NULL,
-  content TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-```  
+Table: **votes**  
+  • id: serial primary key  
+  • student_id: integer references students(id) on delete cascade  
+  • candidate_id: integer references candidates(id) on delete cascade  
+  • voted_at: timestamp default now()  
+  • unique (student_id)
+
+---
+
+If you inspect `/db/schema`, you’ll see matching Drizzle definitions in TypeScript.
 
 ## 4. API Design and Endpoints
 
-- **Approach**: We follow a **RESTful** style, grouping related endpoints under `/api` directories.
+### Approach
+- We use **RESTful API routes** (Next.js API `route.ts` files) co-located under `/app/api`.
+- Endpoints return JSON and use standard HTTP verbs (GET, POST).
+- All routes require authentication via middleware, except the login endpoints.
 
-- **Key Endpoints**
-  - `POST /api/auth/register`  
-    • Accepts `{ email, password }`  
-    • Creates a new user and issues a session token  
-  - `POST /api/auth/login`  
-    • Accepts `{ email, password }`  
-    • Verifies credentials and returns a session token  
-  - `POST /api/auth/logout`  
-    • Invalidates the session token on the server  
-  - `GET /api/dashboard/data`  
-    • Requires a valid session  
-    • Returns user-specific data or dashboard items  
+### Key Endpoints
 
-- **Communication**
-  - Frontend sends JSON requests; backend replies with JSON and appropriate HTTP status codes.  
-  - Protected routes check for a valid session token (in cookies or Authorization header).
+1. **Authentication**
+   - `POST /api/auth/login`  
+     • Admins send `{ email, password }`.  
+     • Students send `{ nis, token }`.
+   - `POST /api/auth/logout`  
+     • Clears session token.
+
+2. **Student Management (Admin-only)**
+   - `GET /api/students`  
+     • List all students.
+   - `POST /api/students`  
+     • Bulk import or create one student.
+   - `POST /api/students/:id/token`  
+     • Generate a new voting token for a student.
+
+3. **Candidate Management (Admin-only)**
+   - `GET /api/candidates`  
+     • List candidates.
+   - `POST /api/candidates`  
+     • Add a new candidate.
+   - `PUT /api/candidates/:id`  
+     • Update candidate details.
+   - `DELETE /api/candidates/:id`  
+     • Remove a candidate.
+
+4. **Voting**
+   - `GET /api/vote`  
+     • Fetch active candidates (students only).
+   - `POST /api/vote`  
+     • Cast a vote: checks token validity, voting period flag, `has_voted` status, then records vote and marks token & student.
+
+5. **Settings (Admin-only)**
+   - `GET /api/settings`  
+     • Fetch current election state (open/closed).
+   - `PUT /api/settings`  
+     • Toggle election state on or off.
+
+Each route uses the Drizzle client to interact with the database and returns clear success/error messages.
 
 ## 5. Hosting Solutions
 
-- **Cloud Provider**:  
-  - **Vercel** (recommended) offers seamless Next.js deployments, auto-scaling, and built-in CDN.  
-  - Alternatively, **Netlify** or any Node.js-capable host will work.
+- **Primary Host**: Vercel (serverless functions for API routes, automatic scaling, global CDN).  
+  • Benefits: zero-config deployments, built-in SSL, automatic global distribution.
+- **Alternative**: Docker containers deployed on AWS ECS or DigitalOcean.  
+  • Benefits: full control over runtime, easier integration with private VPC, custom scaling policies.
 
-- **Benefits**
-  - **Reliability**: Global servers and failover across regions.  
-  - **Scalability**: Auto-scale serverless functions based on traffic.  
-  - **Cost-Effectiveness**: Pay-per-use model means low cost for small projects.
+Both options support automatic rollbacks, environment variable management, and easy CI/CD.
 
 ## 6. Infrastructure Components
 
-- **Load Balancer**
-  - Provided by the hosting platform—distributes API requests across function instances.
+- **Load Balancer / Edge Network**  
+  • On Vercel, requests automatically route to the nearest edge location.  
+  • In a Docker setup, an AWS ALB or NGINX can distribute traffic across containers.
 
-- **CDN (Content Delivery Network)**
-  - Vercel’s global edge network caches static assets (CSS, JS, images) for faster page loads.
+- **Cache / CDN**  
+  • Static assets (CSS, images) served by Vercel’s CDN.  
+  • We can introduce Redis for caching database-heavy endpoints (e.g., candidate list or election settings) if needed.
 
-- **Caching**
-  - **Redis** (optional) for session storage or caching dashboard queries to reduce database load.
+- **Database Hosting**  
+  • Managed PostgreSQL (e.g., AWS RDS, ElephantSQL) with daily backups and high availability.
 
-- **Object Storage**
-  - For file uploads or backups, integrate with AWS S3 or similar services.
-
-- **Message Queue**
-  - In future, use **RabbitMQ** or **Kafka** for background tasks (e.g., email notifications).
+- **Email/Notification Service** (optional)  
+  • For sending token emails to students, we can integrate SendGrid or Mailgun.
 
 ## 7. Security Measures
 
-- **Authentication & Authorization**
-  - Passwords hashed with **bcrypt** and salted.  
-  - Session tokens stored in secure, HttpOnly cookies or Authorization headers.  
-  - Protected endpoints verify tokens before proceeding.
+- **Authentication & Authorization**  
+  • Passwords hashed with bcrypt.  
+  • Students authenticated via one-time tokens stored in the `tokens` table.  
+  • Role checks ensure only admins can access admin APIs.
 
-- **Data Encryption**
-  - **HTTPS/TLS** encrypts data in transit.  
-  - Database connections use SSL to encrypt data between the app and the database.
+- **Data Encryption**  
+  • All traffic over HTTPS.  
+  • Database connections via SSL.
 
-- **Input Validation**
-  - Every incoming request is validated (e.g., valid email format, password length) to prevent SQL injection or other attacks.
+- **Input Validation & Sanitization**  
+  • Use Zod schemas on every API route to validate request bodies.  
+  • Reject malformed or malicious inputs early.
 
-- **Web Security Best Practices**
-  - Enable **CORS** policies to limit allowed origins.  
-  - Use **CSRF tokens** or same-site cookies to prevent cross-site requests.  
-  - Set secure headers with **Helmet** or a similar middleware.
+- **Session Management**  
+  • Signed HTTP-only cookies for sessions.  
+  • Short token lifetimes and secure cookie flags.
+
+- **Compliance**  
+  • No sensitive data (e.g., raw tokens) is logged.  
+  • GDPR-style data access policies can be added if needed.
 
 ## 8. Monitoring and Maintenance
 
-- **Performance Monitoring**
-  - Integrate **Sentry** or **LogRocket** for real-time crash reporting and performance tracing.  
-  - Use Vercel’s built-in analytics to track request latencies and error rates.
+- **Performance Monitoring**  
+  • Vercel Analytics for request metrics (latency, error rates).  
+  • Optionally integrate Sentry for error tracking.
 
-- **Logging**
-  - Structured logs (JSON) for all API requests and errors, shipped to a log management service like **Datadog** or **Logflare**.
+- **Logging**  
+  • API errors and key events (login attempts, vote submissions) logged to a centralized service (e.g., Datadog, Logflare).
 
-- **Health Checks**
-  - Define a `/health` endpoint that returns a 200 status if the service is up and the database is reachable.
+- **Database Health**  
+  • Automated backups and periodic restore tests.  
+  • Use built-in PostgreSQL monitoring dashboards.
 
-- **Maintenance Strategies**
-  - Automated migrations run on deploy to keep the database schema up to date.  
-  - Scheduled dependency audits and security scans (e.g., `npm audit`).
-  - Regular backups of the database (daily or weekly depending on usage).
+- **Maintenance Strategy**  
+  • Schema changes applied via Drizzle migrations in CI.  
+  • Regular dependency updates with automated tests.
+  • Scheduled downtime communicated in advance when doing major upgrades.
 
 ## 9. Conclusion and Overall Backend Summary
 
-The backend for **codeguide-starter** is built on Next.js API Routes and Node.js, paired with PostgreSQL for data and optional Redis for caching. It follows a clear layered architecture that keeps code easy to maintain and extend. With RESTful endpoints for authentication and data, secure practices like password hashing and HTTPS, and hosting on Vercel for scalability and global performance, this setup meets the project’s goals for a fast, secure, and developer-friendly foundation. Future enhancements—such as background job queues, advanced monitoring, or richer data models—can be added without disrupting the core structure.
+The backend for the SMAN 1 Bantarujeg e-voting application is built on a modern, scalable stack:
+- Next.js with serverless functions (or Docker containers) for flexible hosting.  
+- PostgreSQL managed via Drizzle ORM for type safety and reliable migrations.  
+- Clear RESTful APIs protecting key operations (authentication, student/candidate management, voting, settings).  
+- Strong security practices: hashed passwords, token-based student login, HTTPS, input validation.  
+- Cloud-ready hosting on Vercel (or containerized on AWS/DigitalOcean) with global CDN, auto-scaling, and zero-downtime deployments.
+
+This setup ensures the e-voting system can handle growth, remain secure, and be easy to maintain—providing a solid foundation for delivering a smooth, trustworthy voting experience to both administrators and students.

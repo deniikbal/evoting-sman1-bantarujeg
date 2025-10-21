@@ -1,90 +1,115 @@
-# Tech Stack Document
+# Tech Stack Document for evoting-sman1-bantarujeg
 
-This document explains the key technologies chosen for the **codeguide-starter** project. It’s written in everyday language so anyone—technical or not—can understand why each tool was picked and how it supports the application.
+This document explains, in everyday language, the technologies used to build the SMAN 1 Bantarujeg e-voting application. Each section describes the tools and services chosen, why they were selected, and how they work together to deliver a secure, user-friendly voting platform.
 
-## 1. Frontend Technologies
-The frontend is everything the user sees and interacts with. For this project, we’ve used:
+## Frontend Technologies
+
+We’ve picked modern, widely-used tools to create a responsive and accessible interface for both administrators and students.
 
 - **Next.js (App Router)**
-  - A React framework that makes page routing, server-side rendering, and API routes very simple.
-  - Enhances user experience by pre-rendering pages on the server or at build time, leading to faster initial load.
-- **React 18**
-  - The underlying library for building user interfaces with reusable components.
-  - Provides a smooth, interactive experience thanks to its virtual DOM and modern hooks.
+  - Provides server-side rendering (SSR) and client-side navigation for fast page loads and real-time updates.
+  - Lets us colocate API routes and pages, simplifying development and security.
+
 - **TypeScript**
-  - A superset of JavaScript that adds types (labels for data).
-  - Helps catch errors early during development and makes the code easier to maintain.
-- **CSS (globals.css & theme.css)**
-  - **globals.css** applies base styles (fonts, colors, resets) across the entire app.
-  - **dashboard/theme.css** defines the look and feel specific to the dashboard area.
-  - This separation keeps styles organized and avoids accidental style conflicts.
+  - Adds type safety to JavaScript, helping catch errors early and making the code easier to maintain.
 
-By combining these tools, we have a clear structure (Next.js folders for pages and layouts), safer code (TypeScript), and flexible styling with vanilla CSS.
+- **shadcn/ui (based on Radix UI)**
+  - A library of ready-made UI components (buttons, forms, tables, dialogs, cards).
+  - Ensures consistent, accessible design without building every control from scratch.
 
-## 2. Backend Technologies
-The backend handles data, user accounts, and the logic behind the scenes. Our choices here are:
+- **Tailwind CSS v4**
+  - A utility-first styling framework that lets us rapidly build custom designs using simple class names.
+  - Supports dark and light mode out of the box, matching the school’s branding needs.
+
+- **Zod (for input validation)**
+  - Validates form inputs (NIS, tokens, admin entries) on both server and client sides.
+  - Prevents malformed or malicious data from reaching our database.
+
+## Backend Technologies
+
+The server side combines solid frameworks and a type-safe database layer to handle authentication, voting logic, and data storage.
 
 - **Next.js API Routes**
-  - Allows us to write server-side code (`route.ts` files) alongside our frontend in the same project.
-  - Runs on Node.js, so we can handle requests like sign-up, sign-in, and data fetching in one place.
-- **Node.js Runtime**
-  - The JavaScript environment on the server that executes our API routes.
-- **bcrypt** (npm package)
-  - A library for hashing passwords securely before storing them.
-  - Ensures that even if someone got access to our data, raw passwords aren’t visible.
-- **(Optional) NextAuth.js or JWT**
-  - While this starter kit shows a custom authentication flow, it can easily integrate services like NextAuth.js for email-based login or JWT (JSON Web Tokens) for stateless sessions.
+  - Handle authentication, voting submission, and admin actions in the same codebase as our frontend.
+  - Securely process requests, check permissions, and return data without needing a separate server.
 
-These components work together to receive user credentials, verify or store them securely, manage sessions or tokens, and deliver protected data back to the frontend.
+- **Better Auth (or similar authentication library)**
+  - Manages email/password sign-in for admins and token-based login for students.
+  - Customizable to validate NIS and single-use tokens against our database.
 
-## 3. Infrastructure and Deployment
-Infrastructure covers where and how we host the app, as well as how changes get delivered:
+- **Drizzle ORM**
+  - A type-safe layer for interacting with PostgreSQL.
+  - Defines our tables (admins, students, tokens, candidates, votes) in code to keep schema and queries in sync.
 
-- **Git & GitHub**
-  - Version control system (Git) and remote hosting (GitHub) keep track of all code changes and allow team collaboration.
-- **Vercel (or Netlify)**
-  - A popular hosting service optimized for Next.js, with one-click deployments and global content delivery.
-  - Automatically rebuilds and deploys the site whenever code is pushed to the main branch.
-- **GitHub Actions (CI/CD)**
-  - Automates tasks like linting (ESLint), formatting (Prettier), and running any tests you add.
-  - Ensures that only clean, tested code goes live.
+- **PostgreSQL**
+  - An open-source relational database known for reliability and data integrity.
+  - Stores critical election data: student records, voting tokens, candidate info, and vote tallies.
 
-Together, these tools provide a reliable, scalable setup where every code change is tested and deployed quickly, with minimal manual work.
+## Infrastructure and Deployment
 
-## 4. Third-Party Integrations
-While this starter kit is minimal by design, it already includes or can easily add:
+Our infrastructure choices make development smooth and ensure the application can grow securely.
 
-- **bcrypt**
-  - For secure password hashing (included as an npm dependency).
-- **NextAuth.js** (optional)
-  - A full-featured authentication library supporting email/password, OAuth, and more.
-- **Sentry or LogRocket** (optional)
-  - For real-time error tracking and performance monitoring in production.
+- **Version Control: Git & GitHub**
+  - Tracks all code changes, supports review workflows, and lets multiple developers collaborate safely.
 
-These integrations help extend the app’s capabilities without building every feature from scratch.
+- **Hosting: Vercel (or Docker on any cloud)**
+  - Vercel offers zero-config deployments for Next.js apps, with automatic previews for pull requests.
+  - Docker provides consistent environments if you prefer self-hosting or another cloud provider.
 
-## 5. Security and Performance Considerations
-We’ve baked in several measures to keep users safe and the app running smoothly:
+- **CI/CD Pipeline: GitHub Actions**
+  - Automatically runs tests, lints code, and deploys to Vercel (or builds Docker images) on every push.
+  - Ensures new features don’t break existing functionality before going live.
 
-Security:
-- Passwords are never stored in plain text—bcrypt hashes them with a random salt.
-- API routes can implement CSRF protection and input validation to block malicious requests.
-- Session tokens or cookies are marked secure and HttpOnly to prevent theft via JavaScript.
+- **Environment Variables Management**
+  - Stores database URLs, secret keys, and API credentials securely, preventing accidental exposure in code.
 
-Performance:
-- Server-side rendering (SSR) and static site generation (SSG) in Next.js deliver pages faster.
-- Code splitting and lazy-loaded components ensure users only download what they need.
-- Global CSS and theme files are small and cached by the browser for quick repeat visits.
+## Third-Party Integrations
 
-These strategies work together to give users a fast, secure experience every time.
+To save development time and add advanced features, we rely on a few trusted services.
 
-## 6. Conclusion and Overall Tech Stack Summary
-In building **codeguide-starter**, we chose technologies that:
+- **Authentication Provider (Better Auth or NextAuth.js)**
+  - Handles session management, password hashing, and token validation.
+  - Simplifies adding two login methods (email/password for admins, NIS/token for students).
 
-- Align with modern web standards (Next.js, React, TypeScript).
-- Provide a clear, file-based project structure for rapid onboarding.
-- Offer built-in support for server-side rendering, API routes, and static assets.
-- Emphasize security through password hashing, session management, and safe defaults.
-- Enable easy scaling and future enhancements via modular code and optional integrations.
+- **Email Service (optional)**
+  - Can send token-reset or invitation emails to students and admins (e.g., SendGrid, Mailgun).
 
-This stack strikes a balance between simplicity for newcomers and flexibility for experienced teams. It accelerates development of a secure authentication flow and a polished dashboard, while leaving room to plug in databases, test suites, and advanced features as the project grows.
+- **Monitoring & Analytics (optional)**
+  - Tools like Sentry or LogRocket to track errors, performance issues, and user interactions in production.
+
+## Security and Performance Considerations
+
+We’ve built in multiple layers of protection and optimization to keep the voting process smooth and tamper-proof.
+
+Security Measures:
+- **Route Protection & Middleware**
+  - Next.js middleware checks user sessions before granting access to admin dashboards or voting pages.
+- **Single-Use Tokens**
+  - Each student token can only be used once, and the system marks it as "used" to prevent reuse.
+- **Data Encryption & Secure Storage**
+  - Connections to PostgreSQL use SSL/TLS to protect data in transit.
+- **Input Validation (Zod)**
+  - Validates all user-submitted data against strict schemas to stop injection attacks and invalid entries.
+- **Role-Based Access**
+  - Separate login flows and permissions for admins vs. students, ensuring each user sees only what they’re supposed to.
+
+Performance Optimizations:
+- **Server-Side Rendering (SSR)**
+  - Pre-renders pages on the server for faster initial load and better SEO if needed for public pages.
+- **Client-Side Caching**
+  - React Query or built-in SWR can cache API responses to reduce repeated requests.
+- **Modular Code Splitting**
+  - Next.js automatically splits code per page, so students only download what they need when voting.
+- **Image Optimization**
+  - Next.js Image component serves appropriately sized images for candidate photos, reducing bandwidth.
+
+## Conclusion and Overall Tech Stack Summary
+
+By combining Next.js with TypeScript, a component-rich UI library, and a type-safe database layer, we’ve built a reliable foundation for the SMAN 1 Bantarujeg e-voting system. Key highlights:
+
+- **User-Friendly Interfaces:** Tailwind CSS and shadcn/ui ensure consistent, accessible screens for admins and students.
+- **Secure Authentication:** Dual login flows (email/password and NIS/token) with strong protections against token reuse and unauthorized access.
+- **Scalable Backend:** Next.js API routes and Drizzle ORM give us a clear, maintainable codebase that scales with future requirements.
+- **Smooth Deployment:** Vercel and GitHub Actions automate testing and deployment, minimizing downtime.
+
+This tech stack aligns with the project’s goals: a secure, easy-to-use, and maintainable e-voting platform that can grow with the needs of SMAN 1 Bantarujeg.
