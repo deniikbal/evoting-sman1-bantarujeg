@@ -1,117 +1,102 @@
-# Project Requirements Document: codeguide-starter
-
----
+# Project Requirements Document: evoting-sman1-bantarujeg
 
 ## 1. Project Overview
 
-The **codeguide-starter** project is a boilerplate web application that provides a ready-made foundation for any web project requiring secure user authentication and a post-login dashboard. It sets up the common building blocks—sign-up and sign-in pages, API routes to handle registration and login, and a simple dashboard interface driven by static data. By delivering this skeleton, it accelerates development time and ensures best practices are in place from day one.
+This project is an electronic voting (e-voting) system tailored for SMAN 1 Bantarujeg. It provides two portals: one for administrators to manage students, voting tokens, candidates, and election settings; and one for students to securely log in and cast their votes. By moving from paper ballots to a web-based workflow, the system aims to increase efficiency, reduce errors, and ensure that each student can vote exactly once in a transparent and auditable manner.
 
-This starter kit is being built to solve the friction developers face when setting up repeated common tasks: credential handling, session management, page routing, and theming. Key objectives include: 1) delivering a fully working authentication flow (registration & login), 2) providing a gated dashboard area upon successful login, 3) establishing a clear, maintainable project structure using Next.js and TypeScript, and 4) demonstrating a clean theming approach with global and section-specific CSS. Success is measured by having an end-to-end login journey in under 200 lines of code and zero runtime type errors.
-
----
+We’re building this because the school needs a modern, reliable way to run student council elections without the delays and manual work of paper voting. Key success criteria include: 1) secure, one-time voting per student; 2) a simple admin interface for managing elections; 3) a straightforward student experience with minimal friction; and 4) robust audit logs and data integrity backed by PostgreSQL and type-safe Drizzle ORM.
 
 ## 2. In-Scope vs. Out-of-Scope
 
-### In-Scope (Version 1)
-- User registration (sign-up) form with validation
-- User login (sign-in) form with validation
-- Next.js API routes under `/api/auth/route.ts` handling:
-  - Credential validation
-  - Password hashing (e.g., bcrypt)
-  - Session creation or JWT issuance
-- Protected dashboard pages under `/dashboard`:
-  - `layout.tsx` wrapping dashboard content
-  - `page.tsx` rendering static data from `data.json`
-- Global application layout in `/app/layout.tsx`
-- Basic styling via `globals.css` and `dashboard/theme.css`
-- TypeScript strict mode enabled
+In-Scope (Version 1):
+- Admin authentication with email/password
+- Student authentication with NIS (student ID) + single-use token
+- Admin Dashboard: manage student records, generate and revoke tokens
+- Candidate management (add, edit, delete)
+- Voting period toggle (on/off switch)
+- Student Voting Page: view candidate cards, cast a vote
+- Secure API endpoints for authentication and voting logic
+- PostgreSQL database with Drizzle ORM schema for students, tokens, candidates, votes
+- UI components using shadcn/ui (Radix UI) and Tailwind CSS for a consistent look
+- Dark/light theme toggle and responsive design for mobile and desktop
+- Input validation (e.g., via Zod) and clear error messages
 
-### Out-of-Scope (Later Phases)
-- Integration with a real database (PostgreSQL, MongoDB, etc.)
-- Advanced authentication flows (password reset, email verification, MFA)
-- Role-based access control (RBAC)
-- Multi-tenant or white-label theming
-- Unit, integration, or end-to-end testing suites
-- CI/CD pipeline and production deployment scripts
-
----
+Out-of-Scope (Phase 2+):
+- Support for multiple concurrent elections
+- Real-time election result charts or websockets
+- SMS or email notifications for token delivery
+- Social login or Single Sign-On (SSO)
+- Advanced analytics or reporting dashboards
+- Offline voting or ballot printing
 
 ## 3. User Flow
 
-A new visitor lands on the root URL and sees a welcome page with options to **Sign Up** or **Sign In**. If they choose Sign Up, they fill in their email, password, and hit “Create Account.” The form submits to `/api/auth/route.ts`, which hashes the password, creates a new user session or token, and redirects them to the dashboard. If any input is invalid, an inline error message explains the issue (e.g., “Password too short”).
+When a student arrives at the system, they land on the login page and choose the “Student” flow. They enter their NIS and the unique token provided by the admin. After submission, the system verifies credentials, checks that the voting period is active, and confirms the token has not been used. If all checks pass, the student is redirected to the voting screen, where they see candidate cards (photo, name, mission). They click one card, submit their vote, and see a confirmation message. The system then marks their token as used and sets their `has_voted` flag in the database.
 
-Once authenticated, the user is taken to the `/dashboard` route. Here they see a sidebar or header defined by `dashboard/layout.tsx`, and the main panel pulls in static data from `data.json`. They can log out (if that control is present), but otherwise their entire session is managed by server-side cookies or tokens. Returning users go directly to Sign In, submit credentials, and upon success they land back on `/dashboard`. Any unauthorized access to `/dashboard` redirects back to Sign In.
-
----
+An administrator navigates to the admin login page and enters their email and password. Upon successful login, they land on the Admin Dashboard, which features a sidebar menu with links to “Students,” “Candidates,” “Voting Settings,” and “Dashboard Home.” In “Students,” they upload or manage the student list and generate one-time tokens. In “Candidates,” they add/edit/delete candidate profiles. In “Voting Settings,” they toggle the election on or off. Throughout the process, admins can view summary stats (e.g., tokens generated, votes cast) and ensure the system is configured correctly before opening or closing the election period.
 
 ## 4. Core Features
 
-- **Sign-Up Page (`/app/sign-up/page.tsx`)**: Form fields for email & password, client-side validation, POST to `/api/auth`.
-- **Sign-In Page (`/app/sign-in/page.tsx`)**: Form fields for email & password, client-side validation, POST to `/api/auth`.
-- **Authentication API (`/app/api/auth/route.ts`)**: Handles both registration and login based on HTTP method, integrates password hashing (bcrypt) and session or JWT logic.
-- **Global Layout (`/app/layout.tsx` + `globals.css`)**: Shared header, footer, and CSS resets across all pages.
-- **Dashboard Layout (`/app/dashboard/layout.tsx` + `dashboard/theme.css`)**: Sidebar or top nav for authenticated flows, section-specific styling.
-- **Dashboard Page (`/app/dashboard/page.tsx`)**: Reads `data.json`, renders it as cards or tables.
-- **Static Data Source (`/app/dashboard/data.json`)**: Example dataset to demo dynamic rendering.
-- **TypeScript Configuration**: `tsconfig.json` with strict mode and path aliases (if any).
-
----
+- **Authentication**
+  • Admin: email/password flow
+  • Student: NIS + single-use token flow
+- **Admin Dashboard**
+  • Student management (CRUD, import list)
+  • Token generation and revocation
+  • Candidate management (CRUD)
+  • Voting period on/off toggle
+  • Summary statistics (students, tokens, votes)
+- **Student Voting Interface**
+  • Candidate display (cards with photo, name, statement)
+  • Single-vote submission form
+  • Confirmation and prevention of re-voting
+- **API Endpoints**
+  • `/api/auth` (custom NIS/token verification)
+  • `/api/vote` (secure vote recording with checks)
+  • Protected routes enforced by Next.js middleware
+- **Database Schema (Drizzle ORM + PostgreSQL)**
+  • `admins`, `students`, `tokens`, `candidates`, `votes` tables
+  • Migrations to manage schema changes
+- **UI Components & Theming**
+  • shadcn/ui (Radix-based) components (tables, forms, dialogs)
+  • Tailwind CSS for styling
+  • Dark/light mode toggle
+- **Validation & Error Handling**
+  • Input schemas (Zod) for forms
+  • User-friendly error messages (invalid token, voting closed)
+- **Responsive Design & Accessibility**
+  • Mobile-first layouts, ARIA attributes, keyboard navigation
 
 ## 5. Tech Stack & Tools
 
-- **Framework**: Next.js (App Router) for file-based routing, SSR/SSG, and API routes.
-- **Language**: TypeScript for type safety.
-- **UI Library**: React 18 for component-based UI.
-- **Styling**: Plain CSS via `globals.css` (global reset) and `theme.css` (sectional styling). Can easily migrate to CSS Modules or Tailwind in the future.
-- **Backend**: Node.js runtime provided by Next.js API routes.
-- **Password Hashing**: bcrypt (npm package).
-- **Session/JWT**: NextAuth.js or custom JWT logic (to be decided in implementation).
-- **IDE & Dev Tools**: VS Code with ESLint, Prettier extensions. Optionally, Cursor.ai for AI-assisted coding.
-
----
+- **Frontend:** Next.js (App Router), React, TypeScript
+- **Styling/UI:** Tailwind CSS v4, shadcn/ui (Radix UI)
+- **Authentication Library:** Better Auth (or similar, customized)
+- **Database & ORM:** PostgreSQL, Drizzle ORM
+- **Server-Side Logic:** Next.js API routes
+- **Validation:** Zod (input schemas)
+- **Deployment:** Vercel (or Docker + container registry)
+- **IDE Plugins (optional):** Cursor AI for code suggestions
 
 ## 6. Non-Functional Requirements
 
-- **Performance**: Initial page load under 200 ms on a standard broadband connection. API responses under 300 ms.
-- **Security**:
-  - HTTPS only in production.
-  - Proper CORS, CSRF protection for API routes.
-  - Secure password storage (bcrypt with salt).
-  - No credentials or secrets checked into version control.
-- **Scalability**: Structure must support adding database integration, caching layers, and advanced auth flows without rewiring core app.
-- **Usability**: Forms should give real-time feedback on invalid input. Layout must be responsive (mobile > 320 px).
-- **Maintainability**: Code must adhere to TypeScript strict mode. Linting & formatting enforced by ESLint/Prettier.
-
----
+- **Performance:** Page load in under 2 seconds; API response under 300 ms
+- **Security:** HTTPS everywhere; CSRF protection; hashed passwords; token encryption at rest
+- **Data Integrity:** ACID transactions for vote recording; no race conditions
+- **Usability:** WCAG 2.1 AA accessibility compliance; responsive on desktop/mobile
+- **Reliability:** 99.9% uptime; automated backups of the PostgreSQL database
 
 ## 7. Constraints & Assumptions
 
-- **No Database**: Dashboard uses only `data.json`; real database integration is deferred.
-- **Node Version**: Requires Node.js >= 14.
-- **Next.js Version**: Built on Next.js 13+ App Router.
-- **Authentication**: Assumes availability of bcrypt or NextAuth.js at implementation time.
-- **Hosting**: Targets serverless or Node.js-capable hosting (e.g., Vercel, Netlify).
-- **Browser Support**: Modern evergreen browsers; no IE11 support required.
-
----
+- **Constraints:** Must run on Next.js App Router; use Drizzle ORM migrations; rely on PostgreSQL; adhere to school’s firewall rules
+- **Assumptions:** Student list and tokens are managed offline/imported; admin credentials are pre-registered; voting period schedule is controlled via UI; Vercel environment variables can store DB URLs and secrets
 
 ## 8. Known Issues & Potential Pitfalls
 
-- **Static Data Limitation**: `data.json` is only for demo. A real API or database will be needed to avoid stale data.
-  *Mitigation*: Define a clear interface for data fetching so swapping to a live endpoint is trivial.
-
-- **Global CSS Conflicts**: Using global styles can lead to unintended overrides.
-  *Mitigation*: Plan to migrate to CSS Modules or utility-first CSS in Phase 2.
-
-- **API Route Ambiguity**: Single `/api/auth/route.ts` handling both sign-up and sign-in could get complex.
-  *Mitigation*: Clearly branch on HTTP method (`POST /register` vs. `POST /login`) or split into separate files.
-
-- **Lack of Testing**: No test suite means regressions can slip in.
-  *Mitigation*: Build a minimal Jest + React Testing Library setup in an early iteration.
-
-- **Error Handling Gaps**: Client and server must handle edge cases (network failures, malformed input).
-  *Mitigation*: Define a standard error response schema and show user-friendly messages.
+- **Token Reuse & Race Conditions:** Two simultaneous vote submissions could bypass the `is_used` check. Mitigation: wrap vote creation and token update in a DB transaction with row-level locks.
+- **Migration Drift:** Manual schema edits may conflict with Drizzle migrations. Mitigation: always update the schema file first and run `drizzle-kit migrate`.
+- **Invalid Token Handling:** Users entering malformed tokens must see clear errors. Mitigation: use Zod to validate token format before hitting the database.
+- **Long-Running Queries:** Generating reports in the admin UI could slow page loads. Mitigation: paginate results or move heavy queries to background jobs in Phase 2.
 
 ---
-
-This PRD should serve as the single source of truth for the AI model or any developer generating the next set of technical documents: Tech Stack Doc, Frontend Guidelines, Backend Structure, App Flow, File Structure, and IDE Rules. It contains all functional and non-functional requirements with no ambiguity, enabling seamless downstream development.
+This document provides a clear, unambiguous blueprint for the e-voting system’s first version. All subsequent technical designs (tech stack details, frontend guidelines, backend APIs, file structures, tests) should directly reference and align with these requirements.

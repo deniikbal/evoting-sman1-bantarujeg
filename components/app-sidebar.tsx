@@ -39,13 +39,27 @@ const staticData = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
+      title: "E-Voting",
       url: "#",
-      icon: IconListDetails,
+      icon: IconUsers,
+      items: [
+        {
+          title: "Students",
+          url: "/dashboard/students",
+        },
+        {
+          title: "Candidates",
+          url: "/dashboard/candidates",
+        },
+        {
+          title: "Voting Settings",
+          url: "/dashboard/settings",
+        },
+      ],
     },
     {
       title: "Analytics",
