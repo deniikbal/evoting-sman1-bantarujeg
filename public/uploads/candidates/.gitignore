@@ -1,0 +1,5 @@
+# Ignore all uploaded candidate photos
+*
+
+# But keep this file to preserve directory structure
+!.gitignore
