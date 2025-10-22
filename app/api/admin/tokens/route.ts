@@ -15,14 +15,22 @@ function generateToken(): string {
     return token;
 }
 
-// GET tokens
-export async function GET() {
+// GET tokens with pagination, search, and filter
+export async function GET(request: NextRequest) {
     try {
         const admin = await getAdminSession();
         if (!admin) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        const { searchParams } = new URL(request.url);
+        const page = parseInt(searchParams.get("page") || "1");
+        const limit = parseInt(searchParams.get("limit") || "10");
+        const search = searchParams.get("search") || "";
+        const status = searchParams.get("status") || "all"; // all, used, unused
+        const offset = (page - 1) * limit;
+
+        // Get all tokens with students for filtering
         const allTokens = await db.query.tokens.findMany({
             with: {
                 student: true,
@@ -30,7 +38,40 @@ export async function GET() {
             orderBy: (tokens, { desc }) => [desc(tokens.generatedAt)],
         });
 
-        return NextResponse.json({ tokens: allTokens });
+        // Apply search filter
+        let filteredTokens = allTokens;
+        if (search) {
+            const searchLower = search.toLowerCase();
+            filteredTokens = filteredTokens.filter(
+                (token) =>
+                    token.student?.nis?.toLowerCase().includes(searchLower) ||
+                    token.student?.name?.toLowerCase().includes(searchLower) ||
+                    token.token?.toLowerCase().includes(searchLower)
+            );
+        }
+
+        // Apply status filter
+        if (status === "used") {
+            filteredTokens = filteredTokens.filter((token) => token.isUsed);
+        } else if (status === "unused") {
+            filteredTokens = filteredTokens.filter((token) => !token.isUsed);
+        }
+
+        const total = filteredTokens.length;
+        const totalPages = Math.ceil(total / limit);
+
+        // Apply pagination
+        const tokens = filteredTokens.slice(offset, offset + limit);
+
+        return NextResponse.json({
+            tokens,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages,
+            },
+        });
     } catch (error) {
         console.error("Get tokens error:", error);
         return NextResponse.json(

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, UserCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function StudentLoginPage() {
     const [nis, setNis] = useState("");
@@ -34,12 +35,15 @@ export default function StudentLoginPage() {
 
             if (!response.ok) {
                 setError(data.error || "Login gagal");
+                toast.error(data.error || "Login gagal");
                 return;
             }
 
+            toast.success("Login berhasil! Selamat datang.");
             router.push("/student/vote");
         } catch (err) {
             setError("Terjadi kesalahan. Silakan coba lagi.");
+            toast.error("Terjadi kesalahan. Silakan coba lagi.");
         } finally {
             setIsLoading(false);
         }

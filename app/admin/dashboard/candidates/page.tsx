@@ -7,9 +7,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface Candidate {
     id: string;
@@ -27,8 +27,6 @@ export default function CandidatesPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
     const [editingId, setEditingId] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -51,9 +49,11 @@ export default function CandidatesPage() {
             const data = await response.json();
             if (response.ok) {
                 setCandidates(data.candidates);
+            } else {
+                toast.error(data.error || "Gagal mengambil data kandidat");
             }
         } catch (err) {
-            setError("Terjadi kesalahan saat mengambil data");
+            toast.error("Terjadi kesalahan saat mengambil data");
         } finally {
             setIsLoading(false);
         }
@@ -88,13 +88,13 @@ export default function CandidatesPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || "Gagal upload foto");
+                toast.error(data.error || "Gagal upload foto");
                 return null;
             }
 
             return data.url;
         } catch (err) {
-            setError("Terjadi kesalahan saat upload foto");
+            toast.error("Terjadi kesalahan saat upload foto");
             return null;
         } finally {
             setIsUploading(false);
@@ -104,7 +104,6 @@ export default function CandidatesPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setError("");
 
         try {
             let photoUrl = formData.photoUrl;
@@ -135,11 +134,11 @@ export default function CandidatesPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setError(data.error || "Gagal menyimpan kandidat");
+                toast.error(data.error || "Gagal menyimpan kandidat");
                 return;
             }
 
-            setSuccess(data.message);
+            toast.success(data.message || "Kandidat berhasil disimpan");
             setFormData({ name: "", vision: "", mission: "", photoUrl: "", orderPosition: 0 });
             setSelectedFile(null);
             setPreviewUrl("");
@@ -147,7 +146,7 @@ export default function CandidatesPage() {
             setEditingId(null);
             fetchCandidates();
         } catch (err) {
-            setError("Terjadi kesalahan saat menyimpan kandidat");
+            toast.error("Terjadi kesalahan saat menyimpan kandidat");
         } finally {
             setIsSubmitting(false);
         }
@@ -175,13 +174,13 @@ export default function CandidatesPage() {
             const data = await response.json();
 
             if (response.ok) {
-                setSuccess("Kandidat berhasil dihapus");
+                toast.success("Kandidat berhasil dihapus");
                 fetchCandidates();
             } else {
-                setError(data.error || "Gagal menghapus kandidat");
+                toast.error(data.error || "Gagal menghapus kandidat");
             }
         } catch (err) {
-            setError("Terjadi kesalahan saat menghapus kandidat");
+            toast.error("Terjadi kesalahan saat menghapus kandidat");
         }
     };
 
@@ -206,24 +205,23 @@ export default function CandidatesPage() {
                 </Button>
             </div>
 
-            {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
-            {success && <Alert><AlertDescription>{success}</AlertDescription></Alert>}
-
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {candidates.map((candidate) => (
-                    <Card key={candidate.id}>
+                    <Card key={candidate.id} className="flex flex-col h-full">
                         <CardHeader className="pb-4">
                             <div className="flex flex-col items-center text-center">
                                 {candidate.photoUrl ? (
-                                    <Image
-                                        src={candidate.photoUrl}
-                                        alt={candidate.name}
-                                        width={120}
-                                        height={120}
-                                        className="rounded-full object-cover mb-4"
-                                    />
+                                    <div className="relative w-40 h-40 mb-4">
+                                        <Image
+                                            src={candidate.photoUrl}
+                                            alt={candidate.name}
+                                            fill
+                                            className="rounded-full object-cover"
+                                            sizes="(max-width: 768px) 160px, 160px"
+                                        />
+                                    </div>
                                 ) : (
-                                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-white text-4xl font-bold mb-4">
+                                    <div className="w-40 h-40 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center text-white text-5xl font-bold mb-4">
                                         {candidate.name.charAt(0)}
                                     </div>
                                 )}
@@ -233,10 +231,21 @@ export default function CandidatesPage() {
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            {candidate.vision && <p className="text-sm mb-2"><strong>Visi:</strong> <span className="text-muted-foreground">{candidate.vision}</span></p>}
-                            {candidate.mission && <p className="text-sm mb-4"><strong>Misi:</strong> <span className="text-muted-foreground">{candidate.mission}</span></p>}
-                            <div className="flex gap-2 justify-center">
+                        <CardContent className="flex flex-col flex-1">
+                            <div className="flex-1 min-h-[120px]">
+                                {candidate.vision && <p className="text-sm mb-2"><strong>Visi:</strong> <span className="text-muted-foreground">{candidate.vision}</span></p>}
+                                {candidate.mission && (
+                                    <div className="text-sm">
+                                        <strong>Misi:</strong>
+                                        <ol className="list-decimal list-inside mt-1 space-y-1 text-muted-foreground">
+                                            {candidate.mission.split('\n').filter(m => m.trim()).map((misi, index) => (
+                                                <li key={index}>{misi.trim()}</li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex gap-2 justify-center pt-4 mt-4 border-t">
                                 <Button size="sm" variant="outline" onClick={() => handleEdit(candidate)}>
                                     <Edit className="h-4 w-4 mr-1" />
                                     Edit
@@ -273,11 +282,13 @@ export default function CandidatesPage() {
                                 </div>
                                 {previewUrl ? (
                                     <div className="flex justify-center">
-                                        <img 
-                                            src={previewUrl} 
-                                            alt="Preview" 
-                                            className="w-64 h-64 object-cover rounded-lg border shadow-md"
-                                        />
+                                        <div className="relative w-64 h-64">
+                                            <img 
+                                                src={previewUrl} 
+                                                alt="Preview" 
+                                                className="w-full h-full object-cover rounded-lg border shadow-md"
+                                            />
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="flex justify-center">

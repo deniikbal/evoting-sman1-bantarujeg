@@ -10,6 +10,7 @@ import {
     Settings,
     LogOut,
     Vote,
+    GraduationCap,
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -30,6 +31,11 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
             href: "/admin/dashboard",
             icon: LayoutDashboard,
             label: "Dashboard",
+        },
+        {
+            href: "/admin/dashboard/classes",
+            icon: GraduationCap,
+            label: "Kelas",
         },
         {
             href: "/admin/dashboard/students",

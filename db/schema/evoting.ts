@@ -16,12 +16,26 @@ export const admins = pgTable("admins", {
         .notNull(),
 });
 
+// Classes table
+export const classes = pgTable("classes", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull().unique(), // e.g., "XII IPA 1"
+    teacher: text("teacher").notNull(), // Wali kelas
+    createdAt: timestamp("created_at")
+        .$defaultFn(() => new Date())
+        .notNull(),
+    updatedAt: timestamp("updated_at")
+        .$defaultFn(() => new Date())
+        .notNull(),
+});
+
 // Students table
 export const students = pgTable("students", {
     id: text("id").primaryKey(),
     nis: text("nis").notNull().unique(), // Student ID number
     name: text("name").notNull(),
-    class: text("class").notNull(), // e.g., "XII IPA 1"
+    class: text("class").notNull(), // e.g., "XII IPA 1" - kept for backward compatibility
+    classId: text("class_id").references(() => classes.id, { onDelete: "set null" }), // Foreign key to classes
     hasVoted: boolean("has_voted")
         .$defaultFn(() => false)
         .notNull(),
@@ -99,7 +113,15 @@ export const votingSettings = pgTable("voting_settings", {
 });
 
 // Relations
-export const studentsRelations = relations(students, ({ many }) => ({
+export const classesRelations = relations(classes, ({ many }) => ({
+    students: many(students),
+}));
+
+export const studentsRelations = relations(students, ({ one, many }) => ({
+    class: one(classes, {
+        fields: [students.classId],
+        references: [classes.id],
+    }),
     tokens: many(tokens),
     votes: many(votes),
 }));
