@@ -1,89 +1,89 @@
-import { pgTable, text, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
 // Admins table for admin authentication
-export const admins = pgTable("admins", {
+export const admins = sqliteTable("admins", {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
     password: text("password").notNull(),
     role: text("role").notNull().default("admin"),
-    createdAt: timestamp("created_at")
+    createdAt: integer("created_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
-    updatedAt: timestamp("updated_at")
+    updatedAt: integer("updated_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
 });
 
 // Classes table
-export const classes = pgTable("classes", {
+export const classes = sqliteTable("classes", {
     id: text("id").primaryKey(),
     name: text("name").notNull().unique(), // e.g., "XII IPA 1"
     teacher: text("teacher").notNull(), // Wali kelas
-    createdAt: timestamp("created_at")
+    createdAt: integer("created_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
-    updatedAt: timestamp("updated_at")
+    updatedAt: integer("updated_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
 });
 
 // Students table
-export const students = pgTable("students", {
+export const students = sqliteTable("students", {
     id: text("id").primaryKey(),
     nis: text("nis").notNull().unique(), // Student ID number
     name: text("name").notNull(),
     class: text("class").notNull(), // e.g., "XII IPA 1" - kept for backward compatibility
     classId: text("class_id").references(() => classes.id, { onDelete: "set null" }), // Foreign key to classes
-    hasVoted: boolean("has_voted")
+    hasVoted: integer("has_voted", { mode: "boolean" })
         .$defaultFn(() => false)
         .notNull(),
-    createdAt: timestamp("created_at")
+    createdAt: integer("created_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
-    updatedAt: timestamp("updated_at")
+    updatedAt: integer("updated_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
 });
 
 // Voting tokens table
-export const tokens = pgTable("tokens", {
+export const tokens = sqliteTable("tokens", {
     id: text("id").primaryKey(),
     token: text("token").notNull().unique(), // The actual token string
     studentId: text("student_id")
         .notNull()
         .references(() => students.id, { onDelete: "cascade" }),
-    isUsed: boolean("is_used")
+    isUsed: integer("is_used", { mode: "boolean" })
         .$defaultFn(() => false)
         .notNull(),
-    generatedAt: timestamp("generated_at")
+    generatedAt: integer("generated_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
-    usedAt: timestamp("used_at"),
+    usedAt: integer("used_at", { mode: "timestamp" }),
 });
 
 // Candidates table
-export const candidates = pgTable("candidates", {
+export const candidates = sqliteTable("candidates", {
     id: text("id").primaryKey(),
     name: text("name").notNull(),
     photoUrl: text("photo_url"),
     vision: text("vision"),
     mission: text("mission"),
     orderPosition: integer("order_position").notNull().default(0), // For display order
-    isActive: boolean("is_active")
+    isActive: integer("is_active", { mode: "boolean" })
         .$defaultFn(() => true)
         .notNull(),
-    createdAt: timestamp("created_at")
+    createdAt: integer("created_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
-    updatedAt: timestamp("updated_at")
+    updatedAt: integer("updated_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
 });
 
 // Votes table for audit and results
-export const votes = pgTable("votes", {
+export const votes = sqliteTable("votes", {
     id: text("id").primaryKey(),
     studentId: text("student_id")
         .notNull()
@@ -91,22 +91,22 @@ export const votes = pgTable("votes", {
     candidateId: text("candidate_id")
         .notNull()
         .references(() => candidates.id, { onDelete: "cascade" }),
-    votedAt: timestamp("voted_at")
+    votedAt: integer("voted_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
 });
 
 // Voting settings table
-export const votingSettings = pgTable("voting_settings", {
+export const votingSettings = sqliteTable("voting_settings", {
     id: text("id").primaryKey(),
-    isVotingOpen: boolean("is_voting_open")
+    isVotingOpen: integer("is_voting_open", { mode: "boolean" })
         .$defaultFn(() => false)
         .notNull(),
-    startTime: timestamp("start_time"),
-    endTime: timestamp("end_time"),
+    startTime: integer("start_time", { mode: "timestamp" }),
+    endTime: integer("end_time", { mode: "timestamp" }),
     title: text("title").notNull().default("Pemilihan Ketua OSIS"),
     description: text("description"),
-    updatedAt: timestamp("updated_at")
+    updatedAt: integer("updated_at", { mode: "timestamp" })
         .$defaultFn(() => new Date())
         .notNull(),
     updatedBy: text("updated_by"), // admin ID who made the change

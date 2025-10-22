@@ -1,10 +1,8 @@
 import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { db } from '../db';
 import * as schema from '../db/schema/evoting';
 import { randomBytes, createHash } from 'crypto';
 import { eq } from 'drizzle-orm';
-
-const db = drizzle(process.env.DATABASE_URL!, { schema });
 
 function hashPassword(password: string): string {
     return createHash("sha256").update(password).digest("hex");

@@ -1,26 +1,12 @@
 {
   "version": "7",
-  "dialect": "postgresql",
+  "dialect": "sqlite",
   "entries": [
     {
       "idx": 0,
-      "version": "7",
-      "when": 1756202589329,
-      "tag": "0000_overjoyed_morlun",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1761106879231,
-      "tag": "0001_slimy_hellfire_club",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1761107423824,
-      "tag": "0002_odd_veda",
+      "version": "6",
+      "when": 1761147139299,
+      "tag": "0000_fixed_starfox",
       "breakpoints": true
     }
   ]
