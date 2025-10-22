@@ -6,7 +6,7 @@ import { getAdminSession } from "@/lib/auth-admin";
 // GET students by class ID
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const admin = await getAdminSession();
@@ -14,7 +14,7 @@ export async function GET(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const classId = params.id;
+        const { id: classId } = await params;
 
         // Get students in this class
         const classStudents = await db.query.students.findMany({

@@ -1,9 +1,6 @@
 import 'dotenv/config';
-import { createClient } from '@libsql/client';
-import { drizzle } from 'drizzle-orm/libsql';
 import * as schema from '../db/schema/evoting';
 import { randomBytes, createHash } from 'crypto';
-import { eq } from 'drizzle-orm';
 
 // For D1, we need to use wrangler d1 execute command
 // This script is for reference only

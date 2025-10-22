@@ -23,14 +23,40 @@ interface Pagination {
     totalPages: number;
 }
 
+interface Token {
+    id: string;
+    token: string;
+    studentId: string;
+    studentName: string;
+    studentNis: string;
+    isUsed: boolean;
+    generatedAt: string;
+    usedAt: string | null;
+}
+
+interface Student {
+    id: string;
+    name: string;
+    nis: string;
+    class: string;
+}
+
+interface ExportData {
+    name: string;
+    class: string;
+    token: string;
+    status: string;
+    nis: string;
+}
+
 export default function TokensPage() {
-    const [tokens, setTokens] = useState<any[]>([]);
+    const [tokens, setTokens] = useState<Token[]>([]);
     const [studentsWithoutToken, setStudentsWithoutToken] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
     const [isRegenerateDialogOpen, setIsRegenerateDialogOpen] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [selectedToken, setSelectedToken] = useState<any>(null);
+    const [selectedToken, setSelectedToken] = useState<Token | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [copiedTokenId, setCopiedTokenId] = useState<string | null>(null);
@@ -81,10 +107,10 @@ export default function TokensPage() {
                 const allTokensRes = await fetch("/api/admin/tokens?page=1&limit=10000");
                 const allTokensData = await allTokensRes.json();
                 const tokenedStudentIds = new Set(
-                    allTokensData.tokens.map((t: any) => t.studentId)
+                    allTokensData.tokens.map((t: Token) => t.studentId)
                 );
                 const withoutToken = studentsData.students.filter(
-                    (s: any) => !tokenedStudentIds.has(s.id)
+                    (s: Student) => !tokenedStudentIds.has(s.id)
                 ).length;
                 setStudentsWithoutToken(withoutToken);
             }
@@ -136,7 +162,7 @@ export default function TokensPage() {
         setPagination((prev) => ({ ...prev, page: 1 }));
     };
 
-    const handleRegenerateToken = (token: any) => {
+    const handleRegenerateToken = (token: Token) => {
         if (token.isUsed) {
             toast.error("Token sudah terpakai, tidak dapat di-generate ulang");
             return;
@@ -272,7 +298,7 @@ export default function TokensPage() {
             autoTable(doc, {
                 startY: 38,
                 head: [["No", "Nama Lengkap", "Kelas", "Token"]],
-                body: exportData.map((item: any, index: number) => [
+                body: exportData.map((item: ExportData, index: number) => [
                     index + 1,
                     item.name,
                     item.class,
@@ -306,7 +332,7 @@ export default function TokensPage() {
             const exportData = result.data;
 
             // Prepare data for Excel
-            const excelData = exportData.map((item: any, index: number) => ({
+            const excelData = exportData.map((item: ExportData, index: number) => ({
                 "No": index + 1,
                 "Nama Lengkap": item.name,
                 "Kelas": item.class,
@@ -511,8 +537,8 @@ export default function TokensPage() {
                                                 aria-label={`Select token ${token.token}`}
                                             />
                                         </TableCell>
-                                        <TableCell>{token.student?.nis}</TableCell>
-                                        <TableCell>{token.student?.name}</TableCell>
+                                        <TableCell>{token.studentNis}</TableCell>
+                                        <TableCell>{token.studentName}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
                                                 <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono text-sm">
@@ -684,8 +710,8 @@ export default function TokensPage() {
                                     <div className="space-y-2">
                                         <p className="font-medium">Informasi Siswa:</p>
                                         <div className="text-sm space-y-1">
-                                            <p><strong>NIS:</strong> {selectedToken.student?.nis}</p>
-                                            <p><strong>Nama:</strong> {selectedToken.student?.name}</p>
+                                            <p><strong>NIS:</strong> {selectedToken.studentNis}</p>
+                                            <p><strong>Nama:</strong> {selectedToken.studentName}</p>
                                             <p><strong>Token Lama:</strong> <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{selectedToken.token}</code></p>
                                             <p><strong>Status:</strong> <span className={selectedToken.isUsed ? "text-green-600 font-semibold" : "text-gray-600"}>{selectedToken.isUsed ? "Sudah Terpakai" : "Belum Terpakai"}</span></p>
                                         </div>

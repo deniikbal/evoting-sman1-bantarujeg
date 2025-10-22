@@ -37,9 +37,10 @@ for (const table of tables) {
     
     // Generate INSERT statements
     for (const row of rows) {
-        const columns = Object.keys(row);
+        const rowData = row as Record<string, unknown>;
+        const columns = Object.keys(rowData);
         const values = columns.map(col => {
-            const val = (row as any)[col];
+            const val = rowData[col];
             if (val === null) return 'NULL';
             if (typeof val === 'number') return val;
             if (typeof val === 'string') return `'${val.replace(/'/g, "''")}'`;

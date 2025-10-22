@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, classes } from "@/db";
-import { eq } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 import { randomBytes } from "crypto";
 import * as XLSX from "xlsx";
+
+interface ClassImportRow {
+    name?: string | number;
+    teacher?: string | number;
+}
 
 export async function POST(request: NextRequest) {
     try {
@@ -58,7 +62,7 @@ export async function POST(request: NextRequest) {
 
         // Process each row
         for (let i = 0; i < data.length; i++) {
-            const row: any = data[i];
+            const row = data[i] as ClassImportRow;
             const rowNumber = i + 2; // +2 because Excel rows start at 1 and we have header
 
             try {

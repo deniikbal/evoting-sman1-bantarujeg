@@ -178,7 +178,7 @@ export default function StudentsPage() {
             }
 
             toast.success(editingId ? "Data siswa berhasil diperbarui" : "Siswa berhasil ditambahkan");
-            setFormData({ nis: "", name: "", class: "" });
+            setFormData({ nis: "", name: "", class: "", classId: undefined });
             setEditingId(null);
             setIsDialogOpen(false);
             fetchStudents();

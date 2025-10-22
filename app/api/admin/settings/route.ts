@@ -44,7 +44,7 @@ export async function PUT(request: NextRequest) {
         const body = await request.json();
         const { isVotingOpen, title, description } = body;
 
-        let settings = await db.query.votingSettings.findFirst();
+        const settings = await db.query.votingSettings.findFirst();
 
         if (!settings) {
             // Create if not exists

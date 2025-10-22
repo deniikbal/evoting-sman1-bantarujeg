@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
-import { db, students, tokens, votes, candidates, votingSettings } from "@/db";
+import { db, students, tokens, votes, candidates } from "@/db";
 import { eq, count } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
+
+interface CandidateVote {
+    candidateId: string | null;
+    candidateName: string | null;
+    voteCount: number;
+}
 
 export async function GET() {
     try {
@@ -27,8 +33,16 @@ export async function GET() {
         const isVotingOpen = settings?.isVotingOpen || false;
 
         // Get vote results only if voting is closed
-        let voteResults = [];
-        let votesByClass = [];
+        let voteResults: Array<{
+            candidateId: string | null;
+            candidateName: string | null;
+            voteCount: number;
+        }> = [];
+        let votesByClass: Array<{
+            className: string;
+            results: CandidateVote[];
+            totalVotes: number;
+        }> = [];
         
         if (!isVotingOpen) {
             voteResults = await db
@@ -70,7 +84,7 @@ export async function GET() {
             votesByClass = Array.from(classMap.entries()).map(([className, results]) => ({
                 className,
                 results,
-                totalVotes: results.reduce((sum: number, r: any) => sum + r.voteCount, 0),
+                totalVotes: results.reduce((sum: number, r: CandidateVote) => sum + r.voteCount, 0),
             }));
         }
 
