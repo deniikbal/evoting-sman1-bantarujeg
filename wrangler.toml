@@ -1,18 +1,20 @@
 name = "evoting-sman1-bantarujeg"
-main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
-# D1 Database binding
+# Pages configuration
+pages_build_output_dir = ".next"
+
+# D1 Database binding for Pages
 [[d1_databases]]
 binding = "DB"
 database_name = "evoting-db"
-database_id = "1e454747-b814-4645-b3b4-cfc4af430585" # Will be filled after creating D1 database with: wrangler d1 create evoting-db
+database_id = "1e454747-b814-4645-b3b4-cfc4af430585"
 
-# Environment variables for production
+# Production environment
 [env.production]
 name = "evoting-sman1-bantarujeg-production"
 
 [[env.production.d1_databases]]
-binding = "evoting_db_production"
+binding = "DB"
 database_name = "evoting-db-production"
-database_id = "9b6fa9d1-f548-4073-9ee8-b58fdf306552" # Will be filled after creating production D1 database
+database_id = "9b6fa9d1-f548-4073-9ee8-b58fdf306552"
