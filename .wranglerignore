@@ -1,10 +1,12 @@
 # Wrangler ignore file for Cloudflare Pages deployment
 
-# Cache files (too large for deployment)
-.next/cache/
+# Next.js build (using OpenNext instead)
+.next/
 
-# Build artifacts
-.next/trace
+# OpenNext output (keep only worker folder)
+.open-next/server-function/
+.open-next/image-optimization-function/
+.open-next/assets/
 
 # Node modules
 node_modules/

@@ -5,10 +5,12 @@
 **The project is already configured!** Just deploy with these settings:
 
 - **Build command**: `npm run build` ✅
-- **Build output**: `.next`
+- **Build output**: `.open-next/worker` ✅
 - **Framework**: Next.js
 
 The cache will be **automatically cleaned** after build. No manual steps needed!
+
+**Note**: This project now uses **OpenNext** adapter for Cloudflare Pages deployment.
 
 ---
 
