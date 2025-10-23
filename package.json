@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "pages:build": "next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
@@ -30,7 +31,6 @@
     "d1:sync:prod": "npm run db:export && npm run d1:migrate:prod && wrangler d1 execute evoting-db-production --file=./drizzle/data-export.sql --env=production",
     "cf:login": "wrangler login",
     "cf:deploy": "echo 'Please use Cloudflare Dashboard for deployment. See DEPLOY_TO_CLOUDFLARE.md'",
-    "pages:build": "next build",
     "docker:build": "docker build -t codeguide-starter-fullstack .",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",

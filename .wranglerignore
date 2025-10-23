@@ -1,0 +1,44 @@
+# Wrangler ignore file for Cloudflare Pages deployment
+
+# Cache files (too large for deployment)
+.next/cache/
+
+# Build artifacts
+.next/trace
+
+# Node modules
+node_modules/
+
+# Git
+.git/
+
+# Wrangler local files
+.wrangler/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+database/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Documentation
+*.md
+documentation/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
