@@ -53,6 +53,7 @@ export default function CandidatesPage() {
                 toast.error(data.error || "Gagal mengambil data kandidat");
             }
         } catch (err) {
+            console.error("Fetch candidates error:", err);
             toast.error("Terjadi kesalahan saat mengambil data");
         } finally {
             setIsLoading(false);
@@ -94,6 +95,7 @@ export default function CandidatesPage() {
 
             return data.url;
         } catch (err) {
+            console.error("Upload image error:", err);
             toast.error("Terjadi kesalahan saat upload foto");
             return null;
         } finally {
@@ -146,6 +148,7 @@ export default function CandidatesPage() {
             setEditingId(null);
             fetchCandidates();
         } catch (err) {
+            console.error("Save candidate error:", err);
             toast.error("Terjadi kesalahan saat menyimpan kandidat");
         } finally {
             setIsSubmitting(false);
@@ -180,6 +183,7 @@ export default function CandidatesPage() {
                 toast.error(data.error || "Gagal menghapus kandidat");
             }
         } catch (err) {
+            console.error("Delete candidate error:", err);
             toast.error("Terjadi kesalahan saat menghapus kandidat");
         }
     };
@@ -283,10 +287,12 @@ export default function CandidatesPage() {
                                 {previewUrl ? (
                                     <div className="flex justify-center">
                                         <div className="relative w-64 h-64">
-                                            <img 
+                                            <Image 
                                                 src={previewUrl} 
                                                 alt="Preview" 
-                                                className="w-full h-full object-cover rounded-lg border shadow-md"
+                                                fill
+                                                className="object-cover rounded-lg border shadow-md"
+                                                sizes="256px"
                                             />
                                         </div>
                                     </div>

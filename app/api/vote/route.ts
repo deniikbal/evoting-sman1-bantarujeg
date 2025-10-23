@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, students, tokens, votes, candidates, votingSettings } from "@/db";
-import { eq, and } from "drizzle-orm";
+import { db, students, tokens, votes, candidates } from "@/db";
+import { eq, asc } from "drizzle-orm";
 import { getStudentSession } from "@/lib/auth-student";
 import { z } from "zod";
 import { randomBytes } from "crypto";
+
+export const dynamic = 'force-dynamic';
 
 const voteSchema = z.object({
     candidateId: z.string().min(1, "Candidate ID harus diisi"),
@@ -62,7 +64,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Use transaction to ensure atomicity
-        await db.transaction(async (tx) => {
+        await db.transaction(async (tx: typeof db) => {
             // Create vote record
             const voteId = randomBytes(16).toString("hex");
             await tx.insert(votes).values({
@@ -127,7 +129,7 @@ export async function GET() {
         // Get active candidates
         const activeCandidates = await db.query.candidates.findMany({
             where: eq(candidates.isActive, true),
-            orderBy: (candidates, { asc }) => [asc(candidates.orderPosition)],
+            orderBy: [asc(candidates.orderPosition)],
         });
 
         return NextResponse.json({

@@ -4,6 +4,8 @@ import { getAdminSession } from "@/lib/auth-admin";
 import { randomBytes } from "crypto";
 import * as XLSX from "xlsx";
 
+export const dynamic = 'force-dynamic';
+
 interface ClassImportRow {
     name?: string | number;
     teacher?: string | number;
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
 
         // Get existing classes to check for duplicates
         const existingClasses = await db.query.classes.findMany();
-        const existingNames = new Set(existingClasses.map((c) => c.name.toLowerCase()));
+        const existingNames = new Set(existingClasses.map((c: { name: string }) => c.name.toLowerCase()));
 
         let successCount = 0;
         let failedCount = 0;

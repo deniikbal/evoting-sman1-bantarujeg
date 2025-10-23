@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, candidates } from "@/db";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 import { z } from "zod";
 import { randomBytes } from "crypto";
+
+export const dynamic = 'force-dynamic';
 
 const candidateSchema = z.object({
     name: z.string().min(1, "Nama harus diisi"),
@@ -21,7 +23,7 @@ export async function GET() {
         }
 
         const allCandidates = await db.query.candidates.findMany({
-            orderBy: (candidates, { asc }) => [asc(candidates.orderPosition)],
+            orderBy: [asc(candidates.orderPosition)],
         });
 
         return NextResponse.json({ candidates: allCandidates });

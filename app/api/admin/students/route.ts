@@ -5,6 +5,8 @@ import { getAdminSession } from "@/lib/auth-admin";
 import { z } from "zod";
 import { randomBytes } from "crypto";
 
+export const dynamic = 'force-dynamic';
+
 const studentSchema = z.object({
     nis: z.string().min(1, "NIS harus diisi"),
     name: z.string().min(1, "Nama harus diisi"),
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
         const allStudents = await db.query.students.findMany();
         
         // Sort by NIS descending (terbesar ke terkecil)
-        allStudents.sort((a, b) => {
+        allStudents.sort((a: typeof allStudents[number], b: typeof allStudents[number]) => {
             // Convert NIS to number for proper numeric comparison
             const nisA = parseInt(a.nis) || 0;
             const nisB = parseInt(b.nis) || 0;
@@ -44,7 +46,7 @@ export async function GET(request: NextRequest) {
         if (search) {
             const searchLower = search.toLowerCase();
             filteredStudents = filteredStudents.filter(
-                (student) =>
+                (student: typeof allStudents[number]) =>
                     student.nis?.toLowerCase().includes(searchLower) ||
                     student.name?.toLowerCase().includes(searchLower) ||
                     student.class?.toLowerCase().includes(searchLower)
@@ -53,14 +55,14 @@ export async function GET(request: NextRequest) {
 
         // Apply class filter
         if (classFilter !== "all") {
-            filteredStudents = filteredStudents.filter((student) => student.class === classFilter);
+            filteredStudents = filteredStudents.filter((student: typeof allStudents[number]) => student.class === classFilter);
         }
 
         // Apply vote status filter
         if (voteStatus === "voted") {
-            filteredStudents = filteredStudents.filter((student) => student.hasVoted);
+            filteredStudents = filteredStudents.filter((student: typeof allStudents[number]) => student.hasVoted);
         } else if (voteStatus === "not_voted") {
-            filteredStudents = filteredStudents.filter((student) => !student.hasVoted);
+            filteredStudents = filteredStudents.filter((student: typeof allStudents[number]) => !student.hasVoted);
         }
 
         const total = filteredStudents.length;
@@ -70,7 +72,7 @@ export async function GET(request: NextRequest) {
         const students = filteredStudents.slice(offset, offset + limit);
 
         // Get unique classes for filter options with natural sort
-        const uniqueClasses = [...new Set(allStudents.map((s) => s.class))].sort((a, b) =>
+        const uniqueClasses = ([...new Set(allStudents.map((s: typeof allStudents[number]) => s.class))] as string[]).sort((a, b) =>
             a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
         );
 

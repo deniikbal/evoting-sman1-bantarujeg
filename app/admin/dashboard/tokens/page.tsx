@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -70,16 +70,7 @@ export default function TokensPage() {
         totalPages: 0,
     });
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchData();
-            setSelectedTokenIds([]); // Clear selection when filters/search/page changes
-        }, 300); // Debounce search
-
-        return () => clearTimeout(timer);
-    }, [pagination.page, pagination.limit, searchQuery, statusFilter]);
-
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             setIsLoading(true);
             const queryParams = new URLSearchParams({
@@ -115,11 +106,21 @@ export default function TokensPage() {
                 setStudentsWithoutToken(withoutToken);
             }
         } catch (err) {
+            console.error("Fetch tokens error:", err);
             toast.error("Terjadi kesalahan saat mengambil data");
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [pagination.page, pagination.limit, searchQuery, statusFilter]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchData();
+            setSelectedTokenIds([]); // Clear selection when filters/search/page changes
+        }, 300); // Debounce search
+
+        return () => clearTimeout(timer);
+    }, [fetchData]);
 
     const handleGenerateAllTokens = async () => {
         setIsGenerating(true);
@@ -138,6 +139,7 @@ export default function TokensPage() {
                 toast.error(data.error || "Gagal generate token");
             }
         } catch (err) {
+            console.error("Generate all tokens error:", err);
             toast.error("Terjadi kesalahan saat generate token");
         } finally {
             setIsGenerating(false);
@@ -192,6 +194,7 @@ export default function TokensPage() {
                 toast.error(data.error || "Gagal generate token");
             }
         } catch (err) {
+            console.error("Regenerate token error:", err);
             toast.error("Terjadi kesalahan saat generate token");
         } finally {
             setIsGenerating(false);
@@ -209,6 +212,7 @@ export default function TokensPage() {
                 setCopiedTokenId(null);
             }, 2000);
         } catch (err) {
+            console.error("Copy token error:", err);
             toast.error("Gagal menyalin token");
         }
     };
@@ -256,6 +260,7 @@ export default function TokensPage() {
                 toast.error(data.error || "Gagal menghapus token");
             }
         } catch (err) {
+            console.error("Bulk delete tokens error:", err);
             toast.error("Terjadi kesalahan saat menghapus token");
         } finally {
             setIsDeleting(false);

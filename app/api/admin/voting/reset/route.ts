@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 import { getAdminSession, verifyPassword } from "@/lib/auth-admin";
 import { z } from "zod";
 
+export const dynamic = 'force-dynamic';
+
 const resetSchema = z.object({
     password: z.string().min(1, "Password harus diisi"),
 });

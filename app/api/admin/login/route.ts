@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminCredentials, createAdminSession } from "@/lib/auth-admin";
 import { z } from "zod";
 
+export const dynamic = 'force-dynamic';
+
 const loginSchema = z.object({
     email: z.string().email("Email tidak valid"),
     password: z.string().min(1, "Password harus diisi"),

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyStudentCredentials, createStudentSession } from "@/lib/auth-student";
-import { db, votingSettings } from "@/db";
+import { db } from "@/db";
 import { z } from "zod";
+
+export const dynamic = 'force-dynamic';
 
 const loginSchema = z.object({
     nis: z.string().min(1, "NIS harus diisi"),

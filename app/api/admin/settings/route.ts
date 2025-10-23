@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 import { randomBytes } from "crypto";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const admin = await getAdminSession();

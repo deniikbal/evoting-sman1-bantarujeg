@@ -42,6 +42,7 @@ export default function StudentLoginPage() {
             toast.success("Login berhasil! Selamat datang.");
             router.push("/student/vote");
         } catch (err) {
+            console.error("Student login error:", err);
             setError("Terjadi kesalahan. Silakan coba lagi.");
             toast.error("Terjadi kesalahan. Silakan coba lagi.");
         } finally {

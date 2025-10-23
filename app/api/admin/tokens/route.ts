@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, tokens, students } from "@/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 import { randomBytes } from "crypto";
+
+export const dynamic = 'force-dynamic';
 
 // Generate 8 character alphanumeric token
 function generateToken(): string {
@@ -35,15 +37,15 @@ export async function GET(request: NextRequest) {
             with: {
                 student: true,
             },
-            orderBy: (tokens, { desc }) => [desc(tokens.generatedAt)],
-        });
+            orderBy: [desc(tokens.generatedAt)],
+        }) as Awaited<ReturnType<typeof db.query.tokens.findMany>>;
 
         // Apply search filter
         let filteredTokens = allTokens;
         if (search) {
             const searchLower = search.toLowerCase();
             filteredTokens = filteredTokens.filter(
-                (token) =>
+                (token: typeof allTokens[number]) =>
                     token.student?.nis?.toLowerCase().includes(searchLower) ||
                     token.student?.name?.toLowerCase().includes(searchLower) ||
                     token.token?.toLowerCase().includes(searchLower)
@@ -52,19 +54,19 @@ export async function GET(request: NextRequest) {
 
         // Apply status filter
         if (status === "used") {
-            filteredTokens = filteredTokens.filter((token) => token.isUsed);
+            filteredTokens = filteredTokens.filter((token: typeof allTokens[number]) => token.isUsed);
         } else if (status === "unused") {
-            filteredTokens = filteredTokens.filter((token) => !token.isUsed);
+            filteredTokens = filteredTokens.filter((token: typeof allTokens[number]) => !token.isUsed);
         }
 
         const total = filteredTokens.length;
         const totalPages = Math.ceil(total / limit);
 
         // Apply pagination
-        const tokens = filteredTokens.slice(offset, offset + limit);
+        const paginatedTokens = filteredTokens.slice(offset, offset + limit);
 
         return NextResponse.json({
-            tokens,
+            tokens: paginatedTokens,
             pagination: {
                 total,
                 page,

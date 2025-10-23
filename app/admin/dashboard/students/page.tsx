@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -100,14 +100,6 @@ export default function StudentsPage() {
         fetchClasses();
     }, []);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchStudents();
-        }, 300); // Debounce search
-
-        return () => clearTimeout(timer);
-    }, [pagination.page, pagination.limit, searchQuery, classFilter, voteStatusFilter]);
-
     const fetchClasses = async () => {
         try {
             const response = await fetch('/api/admin/classes?limit=1000');
@@ -120,7 +112,7 @@ export default function StudentsPage() {
         }
     };
 
-    const fetchStudents = async () => {
+    const fetchStudents = useCallback(async () => {
         try {
             setIsLoading(true);
             const queryParams = new URLSearchParams({
@@ -145,11 +137,20 @@ export default function StudentsPage() {
                 setAvailableClasses(data.filters.classes);
             }
         } catch (err) {
+            console.error("Fetch students error:", err);
             toast.error("Terjadi kesalahan saat mengambil data");
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [pagination.page, pagination.limit, searchQuery, classFilter, voteStatusFilter]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchStudents();
+        }, 300); // Debounce search
+
+        return () => clearTimeout(timer);
+    }, [fetchStudents]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -183,6 +184,7 @@ export default function StudentsPage() {
             setIsDialogOpen(false);
             fetchStudents();
         } catch (err) {
+            console.error("Save student error:", err);
             toast.error(editingId ? "Terjadi kesalahan saat memperbarui siswa" : "Terjadi kesalahan saat menambahkan siswa");
         } finally {
             setIsSubmitting(false);
@@ -226,6 +228,7 @@ export default function StudentsPage() {
             setStudentToDelete(null);
             fetchStudents();
         } catch (err) {
+            console.error("Delete student error:", err);
             toast.error("Terjadi kesalahan saat menghapus siswa");
         } finally {
             setIsDeleting(false);
@@ -272,6 +275,7 @@ export default function StudentsPage() {
             );
             fetchStudents();
         } catch (err) {
+            console.error("Import students error:", err);
             toast.error("Terjadi kesalahan saat import siswa");
         } finally {
             setIsImporting(false);

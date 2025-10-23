@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, students } from "@/db";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
+
+export const dynamic = 'force-dynamic';
 
 // GET students by class ID
 export async function GET(
@@ -19,7 +21,7 @@ export async function GET(
         // Get students in this class
         const classStudents = await db.query.students.findMany({
             where: eq(students.classId, classId),
-            orderBy: (students, { asc }) => [asc(students.name)],
+            orderBy: [asc(students.name)],
         });
 
         return NextResponse.json({

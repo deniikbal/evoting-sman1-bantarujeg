@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,11 +43,7 @@ export default function VotePage() {
     const [success, setSuccess] = useState(false);
     const router = useRouter();
 
-    useEffect(() => {
-        fetchCandidates();
-    }, []);
-
-    const fetchCandidates = async () => {
+    const fetchCandidates = useCallback(async () => {
         try {
             const response = await fetch("/api/vote");
             const data = await response.json();
@@ -65,11 +61,16 @@ export default function VotePage() {
             setHasVoted(data.hasVoted);
             setStudentData(data.student);
         } catch (err) {
+            console.error("Fetch candidates error:", err);
             setError("Terjadi kesalahan saat mengambil data");
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [router]);
+
+    useEffect(() => {
+        fetchCandidates();
+    }, [fetchCandidates]);
 
     const handleOpenConfirmDialog = () => {
         if (!selectedCandidate) {
@@ -105,6 +106,7 @@ export default function VotePage() {
             setHasVoted(true);
             setIsConfirmDialogOpen(false);
         } catch (err) {
+            console.error("Submit vote error:", err);
             setError("Terjadi kesalahan saat menyimpan suara");
             setIsConfirmDialogOpen(false);
         } finally {

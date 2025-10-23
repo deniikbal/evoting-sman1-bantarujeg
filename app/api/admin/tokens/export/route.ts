@@ -1,9 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { NextResponse } from "next/server";
+import { db, tokens } from "@/db";
+import { desc } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 
+export const dynamic = 'force-dynamic';
+
 // GET all tokens for export
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const admin = await getAdminSession();
         if (!admin) {
@@ -19,11 +22,11 @@ export async function GET(request: NextRequest) {
                     },
                 },
             },
-            orderBy: (tokens, { desc }) => [desc(tokens.generatedAt)],
+            orderBy: [desc(tokens.generatedAt)],
         });
 
         // Format data for export
-        const exportData = allTokens.map(token => ({
+        const exportData = allTokens.map((token: typeof allTokens[number]) => ({
             name: token.student?.name || "-",
             class: token.student?.class?.name || token.student?.class || "-",
             token: token.token,

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { db, tokens, students } from "@/db";
+import { db, tokens } from "@/db";
 import { eq } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 import { randomBytes } from "crypto";
+
+export const dynamic = 'force-dynamic';
 
 // Generate 8 character alphanumeric token
 function generateToken(): string {

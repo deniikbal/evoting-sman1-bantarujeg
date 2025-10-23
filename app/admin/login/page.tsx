@@ -39,6 +39,7 @@ export default function AdminLoginPage() {
 
             router.push("/admin/dashboard");
         } catch (err) {
+            console.error("Admin login error:", err);
             setError("Terjadi kesalahan. Silakan coba lagi.");
         } finally {
             setIsLoading(false);

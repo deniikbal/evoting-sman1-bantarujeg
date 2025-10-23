@@ -3,6 +3,8 @@ import { db, students, tokens, votes, candidates } from "@/db";
 import { eq, count } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 
+export const dynamic = 'force-dynamic';
+
 interface CandidateVote {
     candidateId: string | null;
     candidateName: string | null;

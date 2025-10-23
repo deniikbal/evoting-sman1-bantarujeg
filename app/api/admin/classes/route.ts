@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, classes, students } from "@/db";
-import { eq, sql } from "drizzle-orm";
+import { db, classes } from "@/db";
+import { eq } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 import { z } from "zod";
 import { randomBytes } from "crypto";
+
+export const dynamic = 'force-dynamic';
 
 const classSchema = z.object({
     name: z.string().min(1, "Nama kelas harus diisi"),
@@ -32,13 +34,18 @@ export async function GET(request: NextRequest) {
         });
 
         // Map to include student count and apply natural sort
+        type ClassWithCount = Omit<typeof allClasses[number], 'students'> & { 
+            studentCount: number; 
+            students: undefined 
+        };
+        
         const classesWithCount = allClasses
-            .map((cls) => ({
+            .map((cls: typeof allClasses[number]) => ({
                 ...cls,
                 studentCount: cls.students.length,
                 students: undefined, // Remove students array from response
             }))
-            .sort((a, b) => 
+            .sort((a: ClassWithCount, b: ClassWithCount) => 
                 a.name.localeCompare(b.name, undefined, { 
                     numeric: true, 
                     sensitivity: 'base' 
@@ -50,7 +57,7 @@ export async function GET(request: NextRequest) {
         if (search) {
             const searchLower = search.toLowerCase();
             filteredClasses = filteredClasses.filter(
-                (cls) =>
+                (cls: ClassWithCount) =>
                     cls.name?.toLowerCase().includes(searchLower) ||
                     cls.teacher?.toLowerCase().includes(searchLower)
             );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,11 +63,7 @@ export default function AdminDashboardPage() {
         votesByClass: [],
     });
 
-    useEffect(() => {
-        fetchDashboardStats();
-    }, []);
-
-    const fetchDashboardStats = async () => {
+    const fetchDashboardStats = useCallback(async () => {
         try {
             setIsLoading(true);
             const response = await fetch("/api/admin/dashboard");
@@ -85,11 +81,16 @@ export default function AdminDashboardPage() {
                 setSelectedClass(data.votesByClass[0].className);
             }
         } catch (err) {
+            console.error("Fetch dashboard stats error:", err);
             toast.error("Terjadi kesalahan saat mengambil data");
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [selectedClass]);
+
+    useEffect(() => {
+        fetchDashboardStats();
+    }, [fetchDashboardStats]);
 
     const handleToggleVoting = async () => {
         setIsToggling(true);
@@ -115,6 +116,7 @@ export default function AdminDashboardPage() {
             setIsConfirmDialogOpen(false);
             fetchDashboardStats();
         } catch (err) {
+            console.error("Toggle voting error:", err);
             toast.error("Terjadi kesalahan saat mengubah status");
         } finally {
             setIsToggling(false);
@@ -330,7 +332,7 @@ export default function AdminDashboardPage() {
                                                     cx="50%"
                                                     cy="50%"
                                                     labelLine={false}
-                                                    label={({ name, percent }) => 
+                                                    label={({ percent }) => 
                                                         `${(percent * 100).toFixed(0)}%`
                                                     }
                                                     outerRadius={120}

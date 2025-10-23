@@ -4,6 +4,8 @@ import { eq } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 import { randomBytes } from "crypto";
 
+export const dynamic = 'force-dynamic';
+
 // Generate 8 character alphanumeric token
 function generateToken(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';

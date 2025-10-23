@@ -3,6 +3,8 @@ import { db, tokens } from "@/db";
 import { inArray } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 
+export const dynamic = 'force-dynamic';
+
 // POST bulk delete tokens
 export async function POST(request: NextRequest) {
     try {
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Delete all selected tokens
-        const result = await db.delete(tokens).where(inArray(tokens.id, tokenIds));
+        await db.delete(tokens).where(inArray(tokens.id, tokenIds));
 
         return NextResponse.json({
             success: true,

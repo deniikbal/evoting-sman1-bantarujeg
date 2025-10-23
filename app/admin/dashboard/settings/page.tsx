@@ -21,7 +21,7 @@ interface Settings {
 }
 
 export default function SettingsPage() {
-    const [settings, setSettings] = useState<Settings | null>(null);
+    const [, setSettings] = useState<Settings | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
@@ -54,6 +54,7 @@ export default function SettingsPage() {
                 toast.error("Gagal mengambil pengaturan");
             }
         } catch (err) {
+            console.error("Fetch settings error:", err);
             toast.error("Terjadi kesalahan saat mengambil data");
         } finally {
             setIsLoading(false);
@@ -81,6 +82,7 @@ export default function SettingsPage() {
             toast.success("Pengaturan berhasil disimpan");
             fetchSettings();
         } catch (err) {
+            console.error("Save settings error:", err);
             toast.error("Terjadi kesalahan saat menyimpan pengaturan");
         } finally {
             setIsSubmitting(false);
@@ -113,6 +115,7 @@ export default function SettingsPage() {
             setIsResetDialogOpen(false);
             setResetPassword("");
         } catch (err) {
+            console.error("Reset voting error:", err);
             toast.error("Terjadi kesalahan saat mereset data voting");
         } finally {
             setIsResetting(false);

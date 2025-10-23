@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, students } from "@/db";
-import { eq } from "drizzle-orm";
 import { getAdminSession } from "@/lib/auth-admin";
 import * as XLSX from "xlsx";
 import { randomBytes } from "crypto";
+
+export const dynamic = 'force-dynamic';
 
 interface ImportStudent {
     nis: string;
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest) {
 
         // Get existing NIS to check for duplicates
         const existingStudents = await db.query.students.findMany();
-        const existingNIS = new Set(existingStudents.map((s) => s.nis));
+        const existingNIS = new Set(existingStudents.map((s: typeof existingStudents[number]) => s.nis));
 
         // Process each row
         for (let i = 0; i < data.length; i++) {

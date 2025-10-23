@@ -117,6 +117,7 @@ export default function ClassesPage() {
                 totalPages: data.pagination.totalPages,
             }));
         } catch (err) {
+            console.error("Fetch classes error:", err);
             toast.error("Terjadi kesalahan saat mengambil data");
         } finally {
             setIsLoading(false);
@@ -166,6 +167,7 @@ export default function ClassesPage() {
             setIsDialogOpen(false);
             fetchClasses();
         } catch (err) {
+            console.error("Save class error:", err);
             toast.error(editingId ? "Terjadi kesalahan saat memperbarui kelas" : "Terjadi kesalahan saat menambahkan kelas");
         } finally {
             setIsSubmitting(false);
@@ -205,6 +207,7 @@ export default function ClassesPage() {
                 toast.error(data.error || "Gagal menghapus kelas");
             }
         } catch (err) {
+            console.error("Delete class error:", err);
             toast.error("Terjadi kesalahan saat menghapus kelas");
         } finally {
             setIsDeleting(false);
@@ -234,6 +237,7 @@ export default function ClassesPage() {
                 toast.error(data.error || "Gagal mengambil data siswa");
             }
         } catch (err) {
+            console.error("Fetch class students error:", err);
             toast.error("Terjadi kesalahan saat mengambil data siswa");
         } finally {
             setIsLoadingStudents(false);
@@ -290,6 +294,7 @@ export default function ClassesPage() {
                 toast.error(`${data.result.failed} kelas gagal diimport`);
             }
         } catch (err) {
+            console.error("Import classes error:", err);
             toast.error("Terjadi kesalahan saat import data");
         } finally {
             setIsImporting(false);
