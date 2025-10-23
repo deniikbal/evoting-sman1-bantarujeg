@@ -25,24 +25,29 @@ OpenNext is the official adapter for deploying Next.js to Cloudflare Pages (and 
 
 2. **Created OpenNext Configuration** (`open-next.config.ts`):
    ```typescript
-   import type { OpenNextConfig } from 'open-next/types/open-next';
-
-   const config: OpenNextConfig = {
+   const config = {
      default: {
        override: {
          wrapper: 'cloudflare',
          converter: 'edge',
+         generateDockerfile: false,
        },
      },
+     buildCommand: 'npm run build:next',
    };
 
    export default config;
    ```
+   
+   The `buildCommand` prevents infinite loop by calling separate `build:next` script.
 
 3. **Updated Build Command** (`package.json`):
    ```json
-   "build": "next build && open-next build && node scripts/clean-cache.js"
+   "build": "npx open-next@latest build && node scripts/clean-cache.js",
+   "build:next": "next build"
    ```
+   
+   **Important**: OpenNext internally calls `build:next` to avoid infinite loop.
 
 4. **Updated Output Directory** (`wrangler.toml`):
    ```toml

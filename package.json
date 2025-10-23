@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build && open-next build && node scripts/clean-cache.js",
+    "build": "npx open-next@latest build && node scripts/clean-cache.js",
+    "build:next": "next build",
     "build:local": "next build",
     "start": "next start",
     "lint": "eslint",
