@@ -1,9 +1,6 @@
 name = "evoting-sman1-bantarujeg"
 compatibility_date = "2024-01-01"
 
-# Pages configuration - OpenNext output
-pages_build_output_dir = ".open-next/worker"
-
 # D1 Database binding for Pages
 [[d1_databases]]
 binding = "DB"
